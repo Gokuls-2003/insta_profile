@@ -14,7 +14,7 @@ class _ProfilePageState extends State<ProfilePage>
   final List<String> _posts = List.generate(
       20, (index) => 'https://picsum.photos/200/200?random=$index');
   final List<String> _tagged = List.generate(
-      20, (index) => 'https://picsum.photos/200/200?random=${index + 100}');
+      20, (index) => 'https://picsum.photos/200/200?random=${index}');
 
   @override
   void initState() {
