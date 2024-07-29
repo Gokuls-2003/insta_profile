@@ -1,7 +1,62 @@
 import 'package:flutter/material.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage>
+    with SingleTickerProviderStateMixin {
+  final ScrollController _postsController = ScrollController();
+  final ScrollController _taggedController = ScrollController();
+  final List<String> _posts = List.generate(
+      20, (index) => 'https://picsum.photos/200/200?random=$index');
+  final List<String> _tagged = List.generate(
+      20, (index) => 'https://picsum.photos/200/200?random=${index + 100}');
+
+  @override
+  void initState() {
+    super.initState();
+    _postsController.addListener(() {
+      if (_postsController.position.pixels ==
+          _postsController.position.maxScrollExtent) {
+        _loadMorePosts();
+      }
+    });
+    _taggedController.addListener(() {
+      if (_taggedController.position.pixels ==
+          _taggedController.position.maxScrollExtent) {
+        _loadMoreTagged();
+      }
+    });
+  }
+
+  void _loadMorePosts() {
+    setState(() {
+      _posts.addAll(List.generate(
+          50,
+          (index) =>
+              'https://picsum.photos/200/200?random=${_posts.length + index}'));
+    });
+  }
+
+  void _loadMoreTagged() {
+    setState(() {
+      _tagged.addAll(List.generate(
+          50,
+          (index) =>
+              'https://picsum.photos/200/200?random=${_tagged.length + index + 100}'));
+    });
+  }
+
+  @override
+  void dispose() {
+    _postsController.dispose();
+    _taggedController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,13 +86,15 @@ class ProfilePage extends StatelessWidget {
               icon: const Icon(Icons.menu, color: Colors.white)),
         ],
       ),
-      body: ListView(
-        children: [
-          _buildProfileInfo(),
-          _buildProfileButtons(),
-          _buildStoryHighlights(),
-          _buildTabController()
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildProfileInfo(),
+            _buildProfileButtons(),
+            _buildStoryHighlights(),
+            _buildTabController()
+          ],
+        ),
       ),
       bottomNavigationBar: _buildBottomNavBar(),
     );
@@ -65,13 +122,11 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: 1000,
+            height: 500,
             child: TabBarView(
               children: [
-                _buildPostGrid(),
-                const Center(
-                    child: Text('Tagged Posts',
-                        style: TextStyle(color: Colors.white))),
+                _buildPostGrid(_postsController, _posts),
+                _buildTaggedPosts(_taggedController, _tagged),
               ],
             ),
           ),
@@ -227,18 +282,38 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildPostGrid() {
+  Widget _buildPostGrid(ScrollController controller, List<String> posts) {
     return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
+      controller: controller,
+      physics: const AlwaysScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 1,
         mainAxisSpacing: 1,
       ),
-      itemCount: 100,
+      itemCount: posts.length,
       itemBuilder: (context, index) {
         return Image.network(
-          'https://picsum.photos/200/200?random=$index',
+          posts[index],
+          fit: BoxFit.cover,
+        );
+      },
+    );
+  }
+
+  Widget _buildTaggedPosts(ScrollController controller, List<String> tagged) {
+    return GridView.builder(
+      controller: controller,
+      physics: const AlwaysScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 1,
+        mainAxisSpacing: 1,
+      ),
+      itemCount: tagged.length,
+      itemBuilder: (context, index) {
+        return Image.network(
+          tagged[index],
           fit: BoxFit.cover,
         );
       },
